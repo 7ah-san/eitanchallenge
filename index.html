@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>えいたんチャレンジ！🍌</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="えいたんチャレンジ">
+  <link rel="apple-touch-icon" href="バナたろう.png">
+  <meta name="theme-color" content="#FF9F43">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic Pro', 'メイリオ', 'Yu Gothic', sans-serif;
+      background: linear-gradient(160deg, #FFE066 0%, #FF9F43 45%, #FF6B9D 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ===== ヘッダー ===== */
+    .header {
+      width: 100%;
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(8px);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .header-char {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+    .header h1 {
+      font-size: 1.3rem;
+      color: white;
+      text-shadow: 1px 2px 4px rgba(0,0,0,0.25);
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== メイン ===== */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 32px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    /* ===== スタート画面 ===== */
+    .start-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin-top: 30px;
+      text-align: center;
+    }
+    .start-char {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      animation: floatAnim 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+    }
+    @keyframes floatAnim {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    .start-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 2px 6px rgba(0,0,0,0.25);
+      line-height: 1.7;
+    }
+    .start-subtitle {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.85);
+    }
+    .csv-hint {
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: white;
+      font-size: 0.82rem;
+      text-align: left;
+      line-height: 1.8;
+    }
+    .csv-hint code {
+      background: rgba(0,0,0,0.2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    /* ===== ボタン ===== */
+    .btn {
+      padding: 14px 28px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      font-family: inherit;
+    }
+    .btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.22); }
+    .btn:active { transform: scale(0.95); }
+
+    .btn-white    { background: white;   color: #FF6B35; }
+    .btn-green    { background: #3DBE6E; color: white; }
+    .btn-red      { background: #F05365; color: white; }
+    .btn-ghost    { background: rgba(255,255,255,0.28); color: white; }
+    .btn-sm       { padding: 8px 18px; font-size: 0.88rem; }
+
+    .file-label {
+      display: inline-block;
+      padding: 14px 28px;
+      background: white;
+      color: #FF6B35;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .file-label:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.22); }
+    .file-label:active { transform: scale(0.95); }
+    input[type="file"] { display: none; }
+
+    /* ===== 学習画面 ===== */
+    .study-wrap {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* プログレス */
+    .progress-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      flex: 1;
+      height: 14px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: white;
+      border-radius: 8px;
+      transition: width 0.4s;
+    }
+    .progress-label {
+      color: white;
+      font-size: 0.9rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    /* ストリークドット */
+    .streak-row {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+    .streak-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: background 0.3s, transform 0.2s;
+    }
+    .streak-dot.c { background: #3DBE6E; transform: scale(1.1); }
+    .streak-dot.w { background: #F05365; transform: scale(1.1); }
+
+    /* フラッシュカード */
+    .card-perspective {
+      perspective: 1200px;
+      width: 100%;
+      height: 260px;
+      margin-bottom: 18px;
+      cursor: pointer;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .card-perspective.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-shadow: 0 10px 36px rgba(0,0,0,0.18);
+    }
+    .card-front {
+      background: white;
+    }
+    .card-back {
+      background: #FFF8EC;
+      transform: rotateY(180deg);
+    }
+    .card-en {
+      font-size: 2.6rem;
+      font-weight: bold;
+      color: #FF6B35;
+      text-align: center;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .card-tap-hint {
+      font-size: 0.85rem;
+      color: #bbb;
+    }
+    .card-emoji {
+      font-size: 3.2rem;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    .card-jp {
+      font-size: 1.55rem;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* こたえボタン */
+    .answer-btns {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+    }
+    .answer-btns .btn {
+      flex: 1;
+      font-size: 1.15rem;
+    }
+
+    /* コントロール行 */
+    .ctrl-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* ===== モーダル ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.52);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      animation: fadeIn 0.25s;
+    }
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+
+    .modal-box {
+      background: white;
+      border-radius: 28px;
+      padding: 32px 28px 28px;
+      text-align: center;
+      max-width: 320px;
+      width: 90%;
+      animation: popIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .modal-char {
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+      margin-bottom: 14px;
+    }
+    .modal-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .modal-msg {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      white-space: pre-line;
+    }
+
+    /* ===== 完了画面 ===== */
+    .complete-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .complete-char {
+      width: 170px;
+      height: 170px;
+      object-fit: contain;
+      animation: floatAnim 1.5s ease-in-out infinite;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+    }
+    .complete-title {
+      font-size: 1.9rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 2px 6px rgba(0,0,0,0.25);
+    }
+    .stats-box {
+      background: rgba(255,255,255,0.25);
+      border-radius: 18px;
+      padding: 16px 24px;
+      width: 100%;
+      color: white;
+    }
+    .stats-box p {
+      font-size: 1.05rem;
+      margin: 6px 0;
+      font-weight: bold;
+    }
+
+    /* ===== 紙吹雪 ===== */
+    .confetti-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .cf {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: -10px;
+      animation: cfFall linear forwards;
+    }
+    @keyframes cfFall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <img class="header-char" src="バナたろう.png" alt="バナたろう"
+       onerror="this.style.display='none'">
+  <h1>🍌 えいたんチャレンジ！</h1>
+</div>
+
+<div class="main" id="app"></div>
+
+<script>
+// ===================================================================
+// 状態
+// ===================================================================
+let words         = [];
+let idx           = 0;
+let flipped       = false;
+let correctStreak = 0;
+let wrongStreak   = 0;
+let totalCorrect  = 0;
+let totalWrong    = 0;
+let startTime     = Date.now();
+let dotHistory    = [];   // 直近5回: 'c' | 'w'
+
+const STREAK = 5;
+
+// ===================================================================
+// CSV パーサー
+// ===================================================================
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const result = [];
+  for (let i = 1; i < lines.length; i++) {
+    const raw = lines[i];
+    if (!raw.trim()) continue;
+    // 簡易CSV分割（ダブルクォート対応）
+    const vals = [];
+    let cur = '', inQ = false;
+    for (let c of raw) {
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { vals.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    if (obj.english && obj.japanese) result.push(obj);
+  }
+  return result;
+}
+
+// ===================================================================
+// シャッフル
+// ===================================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===================================================================
+// エスケープ
+// ===================================================================
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===================================================================
+// レンダリング
+// ===================================================================
+const app = document.getElementById('app');
+
+function renderStart() {
+  app.innerHTML = `
+    <div class="start-screen">
+      <img class="start-char" src="バナたろう.png" alt="バナたろう"
+           onerror="this.style.fontSize='120px';this.outerHTML='<div style=font-size:120px>🍌</div>'">
+      <p class="start-title">バナたろうと一緒に<br>英単語を覚えよう！</p>
+      <p class="start-subtitle">英検準1級 フラッシュカード（${BUILTIN_WORDS.length}語）</p>
+
+      <button class="btn btn-white" onclick="loadBuiltIn()">🍌 準1級でスタート！</button>
+
+      <label class="file-label" style="font-size:0.9rem;padding:10px 22px;background:rgba(255,255,255,0.28);color:white;box-shadow:none;">
+        📂 カスタム単語（CSV）を使う
+        <input type="file" accept=".csv,.CSV" onchange="onCSV(event)">
+      </label>
+
+      <div class="csv-hint">
+        <b>CSVの形式：</b><br>
+        1行目（ヘッダー）: <code>english,japanese,emoji</code><br>
+        2行目以降: <code>acquire,手に入れる,🎯</code>
+      </div>
+    </div>`;
+}
+
+function renderStudy() {
+  if (idx >= words.length) { renderComplete(); return; }
+  const w = words[idx];
+  const pct = Math.round((idx / words.length) * 100);
+
+  // ドット
+  const dotsHtml = Array.from({length: STREAK}, (_, i) => {
+    const v = dotHistory[dotHistory.length - STREAK + i];
+    return `<div class="streak-dot ${v === 'c' ? 'c' : v === 'w' ? 'w' : ''}"></div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="study-wrap">
+      <div class="progress-row">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-label">${idx + 1}/${words.length}</span>
+      </div>
+
+      <div class="streak-row">${dotsHtml}</div>
+
+      <div class="card-perspective${flipped ? ' flipped' : ''}" id="card" onclick="onFlip()">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="card-en">${esc(w.english)}</div>
+            <div class="card-tap-hint">👆 タップしてこたえを見る</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="card-emoji">${w.emoji || '🍌'}</div>
+            <div class="card-jp">${esc(w.japanese)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="answer-btns" style="display:${flipped ? 'flex' : 'none'}" id="abtn">
+        <button class="btn btn-red"   onclick="onAnswer(false)">😵 まだ...</button>
+        <button class="btn btn-green" onclick="onAnswer(true)">✨ 覚えた！</button>
+      </div>
+
+      <div class="ctrl-row">
+        <button class="btn btn-ghost btn-sm" onclick="doShuffle()">🔀 シャッフル</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderStart()">🏠 もどる</button>
+      </div>
+    </div>`;
+}
+
+function renderComplete() {
+  const sec  = Math.round((Date.now() - startTime) / 1000);
+  const min  = Math.floor(sec / 60);
+  const ss   = sec % 60;
+  const acc  = totalCorrect + totalWrong > 0
+    ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
+
+  app.innerHTML = `
+    <div class="complete-screen">
+      <img class="complete-char" src="喜びバナたろう.png" alt="喜び"
+           onerror="this.outerHTML='<div style=font-size:120px>🎉</div>'">
+      <p class="complete-title">🎉 ぜんぶ終わったよ！</p>
+      <div class="stats-box">
+        <p>✅ 覚えた：<b>${totalCorrect}</b> 問</p>
+        <p>❌ まだ：<b>${totalWrong}</b> 問</p>
+        <p>🎯 正解率：<b>${acc}%</b></p>
+        <p>⏱️ じかん：<b>${min}分${ss}秒</b></p>
+      </div>
+      <button class="btn btn-white" onclick="restart()">🔁 もう一度やる</button>
+      <button class="btn btn-ghost" onclick="renderStart()">🏠 トップにもどる</button>
+    </div>`;
+  showConfetti(40);
+}
+
+// ===================================================================
+// アクション
+// ===================================================================
+function onFlip() {
+  flipped = !flipped;
+  const card = document.getElementById('card');
+  const abtn = document.getElementById('abtn');
+  if (card) card.classList.toggle('flipped', flipped);
+  if (abtn) abtn.style.display = flipped ? 'flex' : 'none';
+}
+
+function onAnswer(correct) {
+  dotHistory.push(correct ? 'c' : 'w');
+  if (dotHistory.length > STREAK * 2) dotHistory.shift();
+
+  if (correct) {
+    totalCorrect++;
+    correctStreak++;
+    wrongStreak = 0;
+    if (correctStreak >= STREAK) {
+      correctStreak = 0;
+      showStreakModal(true);
+      return;
+    }
+  } else {
+    totalWrong++;
+    wrongStreak++;
+    correctStreak = 0;
+    if (wrongStreak >= STREAK) {
+      wrongStreak = 0;
+      showStreakModal(false);
+      return;
+    }
+  }
+  nextCard();
+}
+
+function nextCard() {
+  idx++;
+  flipped = false;
+  renderStudy();
+}
+
+function doShuffle() {
+  words = shuffle(words);
+  idx = 0; flipped = false;
+  correctStreak = 0; wrongStreak = 0;
+  dotHistory = [];
+  renderStudy();
+}
+
+function restart() {
+  idx = 0; flipped = false;
+  correctStreak = 0; wrongStreak = 0;
+  totalCorrect = 0; totalWrong = 0;
+  dotHistory = [];
+  startTime = Date.now();
+  words = shuffle(words);
+  renderStudy();
+}
+
+// ===================================================================
+// ストリークモーダル
+// ===================================================================
+function showStreakModal(isCorrect) {
+  const imgSrc  = isCorrect ? '喜びバナたろう.png' : 'げっそりバナたろう.png';
+  const imgAlt  = isCorrect ? '喜びバナたろう'     : 'げっそりバナたろう';
+  const title   = isCorrect ? '🎉 5問連続せいかい！！' : '😓 5問連続まちがい…';
+  const msg     = isCorrect
+    ? 'バナたろうも大よろこび！\nこの調子でどんどんいこう！'
+    : 'バナたろうもげっそり…\n一緒に気合いを入れ直そう！💪';
+  const btnCls  = isCorrect ? 'btn-green' : 'btn-red';
+  const btnText = isCorrect ? '✨ つぎへ！' : '💪 がんばる！';
+
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay';
+  ov.innerHTML = `
+    <div class="modal-box">
+      <img class="modal-char" src="${imgSrc}" alt="${imgAlt}"
+           onerror="this.outerHTML='<div style=font-size:90px;margin-bottom:14px>${isCorrect ? '🎉' : '😓'}</div>'">
+      <p class="modal-title">${title}</p>
+      <p class="modal-msg">${msg}</p>
+      <button class="btn ${btnCls}" onclick="closeModal(this)">${btnText}</button>
+    </div>`;
+  document.body.appendChild(ov);
+
+  if (isCorrect) showConfetti(25);
+}
+
+function closeModal(btn) {
+  btn.closest('.modal-overlay').remove();
+  nextCard();
+}
+
+// ===================================================================
+// CSV 読み込み
+// ===================================================================
+function onCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const data = parseCSV(ev.target.result);
+    if (data.length === 0) {
+      alert('CSVの形式が正しくないか、データが見つかりませんでした。\n\nヘッダー例:\nenglish,japanese,emoji');
+      return;
+    }
+    startStudy(data);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+const BUILTIN_WORDS = [
+  { english:'abolish',       japanese:'なくす・廃止する',               emoji:'🗑️' },
+  { english:'absorb',        japanese:'吸い込む・取り入れる',           emoji:'🧽' },
+  { english:'abundant',      japanese:'たくさんある・豊かな',           emoji:'🌾' },
+  { english:'accelerate',    japanese:'速くする・加速する',             emoji:'🚀' },
+  { english:'accommodate',   japanese:'受け入れる・泊まらせる',         emoji:'🏠' },
+  { english:'accomplish',    japanese:'やり遂げる・達成する',           emoji:'🏆' },
+  { english:'accumulate',    japanese:'ためる・積み重ねる',             emoji:'📦' },
+  { english:'accurate',      japanese:'正確な・間違いのない',           emoji:'🎯' },
+  { english:'acknowledge',   japanese:'認める・感謝する',               emoji:'👍' },
+  { english:'acquire',       japanese:'手に入れる・習得する',           emoji:'🎯' },
+  { english:'adapt',         japanese:'慣れる・合わせる',               emoji:'🔄' },
+  { english:'adequate',      japanese:'十分な・ちょうどいい',           emoji:'✅' },
+  { english:'adopt',         japanese:'取り入れる・採用する',           emoji:'📋' },
+  { english:'advocate',      japanese:'支持する・広める',               emoji:'📢' },
+  { english:'aggressive',    japanese:'攻撃的な・積極的な',             emoji:'😤' },
+  { english:'allocate',      japanese:'割り当てる・分配する',           emoji:'📤' },
+  { english:'alter',         japanese:'変える・変わる',                 emoji:'🔧' },
+  { english:'ambiguous',     japanese:'あいまいな・はっきりしない',     emoji:'🌫️' },
+  { english:'ambitious',     japanese:'野心的な・大きな目標を持つ',     emoji:'🔥' },
+  { english:'analyze',       japanese:'分析する・じっくり調べる',       emoji:'🔬' },
+  { english:'annual',        japanese:'毎年の・年1回の',               emoji:'📅' },
+  { english:'anticipate',    japanese:'予想する・楽しみに待つ',         emoji:'🔮' },
+  { english:'apparent',      japanese:'明らかな・見かけの',             emoji:'👁️' },
+  { english:'appreciate',    japanese:'ありがたく思う',                 emoji:'🙏' },
+  { english:'appropriate',   japanese:'ふさわしい・適切な',             emoji:'✅' },
+  { english:'approve',       japanese:'賛成する・認める',               emoji:'✅' },
+  { english:'assert',        japanese:'強く主張する・断言する',         emoji:'💬' },
+  { english:'assess',        japanese:'評価する・調べる',               emoji:'📝' },
+  { english:'assign',        japanese:'割り当てる・任命する',           emoji:'📋' },
+  { english:'assume',        japanese:'思い込む・仮定する',             emoji:'💭' },
+  { english:'assure',        japanese:'保証する・安心させる',           emoji:'🛡️' },
+  { english:'attain',        japanese:'達成する・手に入れる',           emoji:'🎯' },
+  { english:'attribute',     japanese:'原因とする・特徴',               emoji:'🔍' },
+  { english:'authority',     japanese:'権力・当局',                     emoji:'👑' },
+  { english:'aware',         japanese:'気づいている・知っている',       emoji:'👀' },
+  { english:'barrier',       japanese:'じゃまなもの・壁',               emoji:'🚧' },
+  { english:'benefit',       japanese:'よいこと・役に立つ',             emoji:'🌟' },
+  { english:'bias',          japanese:'偏り・かたよった見方',           emoji:'⚖️' },
+  { english:'capable',       japanese:'できる・能力がある',             emoji:'💪' },
+  { english:'capture',       japanese:'つかまえる・記録する',           emoji:'📸' },
+  { english:'challenge',     japanese:'挑戦・難しいこと',               emoji:'⚔️' },
+  { english:'chronic',       japanese:'長い間続く・慢性の',             emoji:'⏳' },
+  { english:'circumstance',  japanese:'状況・事情',                     emoji:'🌍' },
+  { english:'cite',          japanese:'例を出す・引用する',             emoji:'📖' },
+  { english:'collapse',      japanese:'崩れる・倒れる',                 emoji:'🏚️' },
+  { english:'commit',        japanese:'やり遂げる・責任を持つ',         emoji:'🤝' },
+  { english:'communicate',   japanese:'伝える・やり取りする',           emoji:'💬' },
+  { english:'complex',       japanese:'複雑な・難しい',                 emoji:'🌀' },
+  { english:'component',     japanese:'部品・要素',                     emoji:'🔩' },
+  { english:'comprehensive', japanese:'広い・全部含む',                 emoji:'📚' },
+  { english:'complicated',   japanese:'ごちゃごちゃしている・複雑な',   emoji:'🌀' },
+  { english:'concentrate',   japanese:'集中する',                       emoji:'🎯' },
+  { english:'concern',       japanese:'心配・関係する',                 emoji:'😟' },
+  { english:'confirm',       japanese:'確認する・確かめる',             emoji:'✔️' },
+  { english:'conflict',      japanese:'争い・ぶつかる',                 emoji:'⚔️' },
+  { english:'consider',      japanese:'考える・検討する',               emoji:'🤔' },
+  { english:'consequence',   japanese:'結果・影響',                     emoji:'🔗' },
+  { english:'consistent',    japanese:'一致した・変わらない',           emoji:'📏' },
+  { english:'contribute',    japanese:'貢献する・役立つ',               emoji:'🌱' },
+  { english:'controversial', japanese:'意見が分かれる・議論になる',     emoji:'🗣️' },
+  { english:'convince',      japanese:'信じさせる・納得させる',         emoji:'💬' },
+  { english:'cope',          japanese:'うまく対処する',                 emoji:'🛠️' },
+  { english:'crucial',       japanese:'とても大切な・重要な',           emoji:'⭐' },
+  { english:'decline',       japanese:'断る・減る・落ちる',             emoji:'📉' },
+  { english:'dedicate',      japanese:'捧げる・専念する',               emoji:'❤️' },
+  { english:'deficit',       japanese:'不足・赤字',                     emoji:'📉' },
+  { english:'deliberate',    japanese:'わざとの・じっくり考える',       emoji:'🤔' },
+  { english:'demonstrate',   japanese:'示す・証明する',                 emoji:'📢' },
+  { english:'deprive',       japanese:'奪う・取り上げる',               emoji:'😢' },
+  { english:'derive',        japanese:'引き出す・〜から生まれる',       emoji:'🌱' },
+  { english:'detect',        japanese:'気づく・発見する',               emoji:'🔍' },
+  { english:'determine',     japanese:'決める・調べる',                 emoji:'✅' },
+  { english:'diminish',      japanese:'減らす・小さくなる',             emoji:'📉' },
+  { english:'discriminate',  japanese:'差別する・区別する',             emoji:'⚖️' },
+  { english:'dispute',       japanese:'争い・議論する',                 emoji:'🗣️' },
+  { english:'distinct',      japanese:'はっきり違う・独特の',           emoji:'🌟' },
+  { english:'distribute',    japanese:'配る・広める',                   emoji:'📤' },
+  { english:'diverse',       japanese:'いろいろな・多様な',             emoji:'🌈' },
+  { english:'dominate',      japanese:'支配する・優位に立つ',           emoji:'👑' },
+  { english:'eliminate',     japanese:'なくす・取り除く',               emoji:'🗑️' },
+  { english:'emphasize',     japanese:'強調する・大事だと言う',         emoji:'📢' },
+  { english:'enable',        japanese:'できるようにする',               emoji:'🔓' },
+  { english:'enforce',       japanese:'実施する・強制する',             emoji:'⚖️' },
+  { english:'enhance',       japanese:'よくする・高める',               emoji:'⬆️' },
+  { english:'ensure',        japanese:'確かにする・保証する',           emoji:'✅' },
+  { english:'establish',     japanese:'作る・設立する',                 emoji:'🏗️' },
+  { english:'evaluate',      japanese:'評価する・調べる',               emoji:'📊' },
+  { english:'evident',       japanese:'明らかな・だれでもわかる',       emoji:'💡' },
+  { english:'evolve',        japanese:'進化する・変わっていく',         emoji:'🦋' },
+  { english:'exclude',       japanese:'除く・仲間外れにする',           emoji:'🚫' },
+  { english:'expand',        japanese:'広げる・大きくする',             emoji:'📈' },
+  { english:'exploit',       japanese:'利用する・うまく使う',           emoji:'🔧' },
+  { english:'expose',        japanese:'さらす・明らかにする',           emoji:'☀️' },
+  { english:'extreme',       japanese:'極端な・激しい',                 emoji:'🌋' },
+  { english:'facilitate',    japanese:'助ける・簡単にする',             emoji:'🤝' },
+  { english:'fundamental',   japanese:'基本的な・大事な',               emoji:'🌱' },
+  { english:'generate',      japanese:'生み出す・作る',                 emoji:'⚡' },
+  { english:'global',        japanese:'世界的な・地球全体の',           emoji:'🌍' },
+  { english:'govern',        japanese:'治める・管理する',               emoji:'👑' },
+  { english:'guarantee',     japanese:'保証する・約束する',             emoji:'🛡️' },
+  { english:'identify',      japanese:'見つける・確認する',             emoji:'🔍' },
+  { english:'ignore',        japanese:'無視する・気にしない',           emoji:'🙈' },
+  { english:'implement',     japanese:'実行する・実施する',             emoji:'⚙️' },
+  { english:'imply',         japanese:'それとなく言う・含む',           emoji:'💭' },
+  { english:'impose',        japanese:'強制する・課す',                 emoji:'⚖️' },
+  { english:'influence',     japanese:'影響する・影響',                 emoji:'🌊' },
+  { english:'interpret',     japanese:'説明する・解釈する',             emoji:'💬' },
+  { english:'investigate',   japanese:'調べる・捜査する',               emoji:'🔍' },
+  { english:'involve',       japanese:'含む・関係する',                 emoji:'🔗' },
+  { english:'justify',       japanese:'正当化する・理由をつける',       emoji:'⚖️' },
+  { english:'maintain',      japanese:'保つ・続ける',                   emoji:'🔧' },
+  { english:'manipulate',    japanese:'操る・うまく扱う',               emoji:'🎮' },
+  { english:'massive',       japanese:'巨大な・とても大きい',           emoji:'🏔️' },
+  { english:'minimize',      japanese:'最小限にする・へらす',           emoji:'📉' },
+  { english:'modify',        japanese:'変える・手直しする',             emoji:'🔧' },
+  { english:'monitor',       japanese:'監視する・様子を見る',           emoji:'👁️' },
+  { english:'mutual',        japanese:'お互いの・共通の',               emoji:'🤝' },
+  { english:'neglect',       japanese:'無視する・ほったらかしにする',   emoji:'😔' },
+  { english:'neutral',       japanese:'中立の・どちらでもない',         emoji:'⚖️' },
+  { english:'obvious',       japanese:'明らかな・だれでもわかる',       emoji:'💡' },
+  { english:'occur',         japanese:'起きる・発生する',               emoji:'⚡' },
+  { english:'oppose',        japanese:'反対する',                       emoji:'❌' },
+  { english:'outcome',       japanese:'結果・成果',                     emoji:'🎯' },
+  { english:'participate',   japanese:'参加する',                       emoji:'🙋' },
+  { english:'perceive',      japanese:'感じる・気づく',                 emoji:'👁️' },
+  { english:'perspective',   japanese:'見方・考え方',                   emoji:'🔭' },
+  { english:'potential',     japanese:'可能性・なれる力',               emoji:'🌱' },
+  { english:'poverty',       japanese:'貧しさ・貧困',                   emoji:'😢' },
+  { english:'principle',     japanese:'原則・大事なルール',             emoji:'📜' },
+  { english:'priority',      japanese:'優先すること・大切なこと',       emoji:'⭐' },
+  { english:'proceed',       japanese:'進む・続ける',                   emoji:'➡️' },
+  { english:'prohibit',      japanese:'禁止する・禁じる',               emoji:'🚫' },
+  { english:'promote',       japanese:'広める・宣伝する・昇進させる',   emoji:'📢' },
+  { english:'proportion',    japanese:'割合・バランス',                 emoji:'⚖️' },
+  { english:'pursue',        japanese:'追う・目指す',                   emoji:'🏃' },
+  { english:'realistic',     japanese:'現実的な・実際にできる',         emoji:'🌍' },
+  { english:'recognize',     japanese:'気づく・認める',                 emoji:'👁️' },
+  { english:'reduce',        japanese:'減らす',                         emoji:'📉' },
+  { english:'reject',        japanese:'断る・拒否する',                 emoji:'❌' },
+  { english:'rely',          japanese:'頼る・信用する',                 emoji:'🤝' },
+  { english:'represent',     japanese:'表す・代表する',                 emoji:'🎭' },
+  { english:'resolve',       japanese:'解決する・決める',               emoji:'✅' },
+  { english:'resource',      japanese:'資源・役立つもの',               emoji:'⛏️' },
+  { english:'restrict',      japanese:'制限する・おさえる',             emoji:'🔒' },
+  { english:'reveal',        japanese:'明らかにする・見せる',           emoji:'✨' },
+  { english:'significant',   japanese:'大切な・大きな',                 emoji:'⭐' },
+  { english:'solution',      japanese:'解決策・答え',                   emoji:'💡' },
+  { english:'strategy',      japanese:'作戦・計画',                     emoji:'🗺️' },
+  { english:'sufficient',    japanese:'十分な・足りている',             emoji:'✅' },
+  { english:'sustainable',   japanese:'ずっと続けられる・環境にやさしい', emoji:'♻️' },
+  { english:'tendency',      japanese:'〜しがちなこと・傾向',           emoji:'📊' },
+  { english:'transform',     japanese:'変える・変身させる',             emoji:'🦋' },
+  { english:'transition',    japanese:'移り変わり・変化',               emoji:'🔄' },
+  { english:'transparent',   japanese:'透明な・正直な',                 emoji:'🪟' },
+  { english:'ultimate',      japanese:'最終的な・最大の',               emoji:'🏆' },
+  { english:'undermine',     japanese:'じわじわ弱らせる・傷つける',     emoji:'⚠️' },
+  { english:'utilize',       japanese:'利用する・使う',                 emoji:'🔧' },
+  { english:'valid',         japanese:'正しい・有効な',                 emoji:'✅' },
+  { english:'variety',       japanese:'種類・いろいろ',                 emoji:'🌈' },
+  { english:'volunteer',     japanese:'ボランティアする・進んでやる',   emoji:'🙋' },
+];
+
+function loadBuiltIn() {
+  startStudy(BUILTIN_WORDS);
+}
+
+function startStudy(data) {
+  words = shuffle(data);
+  idx = 0; flipped = false;
+  correctStreak = 0; wrongStreak = 0;
+  totalCorrect = 0; totalWrong = 0;
+  dotHistory = [];
+  startTime = Date.now();
+  renderStudy();
+}
+
+// ===================================================================
+// 紙吹雪
+// ===================================================================
+function showConfetti(count) {
+  const wrap = document.createElement('div');
+  wrap.className = 'confetti-wrap';
+  const colors = ['#FFD700','#FF6B9D','#3DBE6E','#42A5F5','#FF7043','#AB47BC','#00BCD4'];
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'cf';
+    const dur = 2 + Math.random() * 2;
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      background:${colors[i % colors.length]};
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      animation-delay:${Math.random() * 0.8}s;
+      animation-duration:${dur}s;`;
+    wrap.appendChild(p);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 5000);
+}
+
+// ===================================================================
+// 初期化
+// ===================================================================
+renderStart();
+</script>
+</body>
+</html>

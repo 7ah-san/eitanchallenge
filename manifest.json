@@ -1,0 +1,17 @@
+{
+  "name": "えいたんチャレンジ！",
+  "short_name": "えいたん",
+  "description": "英検準1級 フラッシュカードアプリ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FF9F43",
+  "theme_color": "#FF9F43",
+  "icons": [
+    {
+      "src": "バナたろう.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
