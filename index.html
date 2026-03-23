@@ -140,6 +140,24 @@
     .file-label:active { transform: scale(0.95); }
     input[type="file"] { display: none; }
 
+    /* ===== スピーカーボタン ===== */
+    .speak-btn {
+      background: rgba(255, 107, 53, 0.1);
+      border: 2px solid rgba(255, 107, 53, 0.25);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .speak-btn:active { transform: scale(0.88); background: rgba(255, 107, 53, 0.22); }
+
     /* ===== 学習画面 ===== */
     .study-wrap {
       width: 100%;
@@ -354,6 +372,130 @@
       font-weight: bold;
     }
 
+    /* ===== きろく画面 ===== */
+    .record-screen {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding-top: 10px;
+    }
+    .record-month-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .record-month-label {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 2px 4px rgba(0,0,0,0.2);
+      min-width: 110px;
+      text-align: center;
+    }
+    .cal-wrap {
+      width: 100%;
+      background: rgba(255,255,255,0.93);
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+    }
+    .cal-dow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 6px;
+    }
+    .cal-dow span {
+      text-align: center;
+      font-size: 0.76rem;
+      font-weight: bold;
+      color: #aaa;
+      padding: 4px 0;
+    }
+    .cal-dow span:first-child { color: #F05365; }
+    .cal-dow span:last-child  { color: #4A90D9; }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    .cal-cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+    }
+    .cal-cell.empty { background: transparent; }
+    .cal-cell.today { outline: 2px solid #FF9F43; outline-offset: -2px; }
+    .cal-day  { font-size: 0.78rem; font-weight: bold; color: #555; line-height: 1; }
+    .cal-cell.sun .cal-day { color: #F05365; }
+    .cal-cell.sat .cal-day { color: #4A90D9; }
+    .cal-count {
+      font-size: 0.65rem;
+      font-weight: bold;
+      color: white;
+      background: #FF9F43;
+      border-radius: 6px;
+      padding: 1px 4px;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .cal-cell.lv1 { background: #FFF0CC; }
+    .cal-cell.lv2 { background: #FFD88A; }
+    .cal-cell.lv3 { background: #FFBB33; }
+    .cal-cell.lv4 { background: #FF9F43; }
+    .cal-cell.lv4 .cal-day { color: white; }
+    .record-total {
+      background: rgba(255,255,255,0.25);
+      border-radius: 14px;
+      padding: 12px 20px;
+      color: white;
+      font-weight: bold;
+      font-size: 0.95rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* ===== 吹き出し ===== */
+    .char-bubble-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      justify-content: center;
+    }
+    .speech-bubble {
+      background: white;
+      border-radius: 18px;
+      padding: 14px 18px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: #444;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      max-width: 200px;
+      line-height: 1.6;
+      animation: bubblePop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes bubblePop {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 8px solid transparent;
+      border-right-color: white;
+    }
+
     /* ===== 紙吹雪 ===== */
     .confetti-wrap {
       position: fixed;
@@ -451,26 +593,55 @@ function esc(s) {
 // ===================================================================
 const app = document.getElementById('app');
 
+const BANA_MESSAGES = [
+  'やっほー！\n元気だった？🍌',
+  '今日の給食\nなんだった？',
+  '宿題やった？\nえらいね〜！',
+  'なんのお菓子\nが好き？',
+  '今日も一緒に\nがんばろうね！',
+  'きのう何して\n遊んだの？',
+  '好きな教科\nってなに？',
+  '今日も単語\nやろうよ！',
+  'バナナって好き？\nぼく大好き🍌',
+  '今日は何が\n食べたい？',
+  '学校楽しかった？',
+  'テスト近い？\n一緒にがんばろ！',
+  'ねむい？\nぼくもねむい🍌',
+  '今日の天気\nどうだった？',
+  'すきなスポーツ\nってなに？',
+  'きょうのごはん\nおいしかった？',
+  'ともだちと\n何して遊ぶの？',
+  '好きなキャラ\nだれ？',
+  'ゲームしてる？\nなに遊んでるの？',
+  '今日もえらいね！\nきたね！🍌',
+  'さいきん\nはまってることある？',
+  'テスト何点\nだった？',
+  'すきな季節\nっていつ？',
+  '起きてすぐ来てくれた？\nえらい！',
+  '何か面白いこと\nあった？',
+];
+
 function renderStart() {
+  const msg = BANA_MESSAGES[Math.floor(Math.random() * BANA_MESSAGES.length)];
   app.innerHTML = `
     <div class="start-screen">
-      <img class="start-char" src="バナたろう.png" alt="バナたろう"
-           onerror="this.style.fontSize='120px';this.outerHTML='<div style=font-size:120px>🍌</div>'">
+      <div class="char-bubble-wrap">
+        <img class="start-char" src="バナたろう.png" alt="バナたろう"
+             style="width:130px;height:130px"
+             onerror="this.style.fontSize='90px';this.outerHTML='<div style=font-size:90px>🍌</div>'">
+        <div class="speech-bubble">${msg.replace(/\n/g,'<br>')}</div>
+      </div>
       <p class="start-title">バナたろうと一緒に<br>英単語を覚えよう！</p>
       <p class="start-subtitle">英検準1級 フラッシュカード（${BUILTIN_WORDS.length}語）</p>
 
       <button class="btn btn-white" onclick="loadBuiltIn()">🍌 準1級でスタート！</button>
+      <button class="btn btn-ghost" onclick="calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderRecord()">📅 きろくを見る</button>
 
       <label class="file-label" style="font-size:0.9rem;padding:10px 22px;background:rgba(255,255,255,0.28);color:white;box-shadow:none;">
         📂 カスタム単語（CSV）を使う
         <input type="file" accept=".csv,.CSV" onchange="onCSV(event)">
       </label>
 
-      <div class="csv-hint">
-        <b>CSVの形式：</b><br>
-        1行目（ヘッダー）: <code>english,japanese,emoji</code><br>
-        2行目以降: <code>acquire,手に入れる,🎯</code>
-      </div>
     </div>`;
 }
 
@@ -500,11 +671,13 @@ function renderStudy() {
         <div class="card-inner">
           <div class="card-face card-front">
             <div class="card-en">${esc(w.english)}</div>
+            <button class="speak-btn" onclick="event.stopPropagation();speakWord('${esc(w.english)}')" title="発音を聞く">🔊</button>
             <div class="card-tap-hint">👆 タップしてこたえを見る</div>
           </div>
           <div class="card-face card-back">
             <div class="card-emoji">${w.emoji || '🍌'}</div>
             <div class="card-jp">${esc(w.japanese)}</div>
+            <button class="speak-btn" onclick="event.stopPropagation();speakWord('${esc(w.english)}')" title="発音を聞く">🔊</button>
           </div>
         </div>
       </div>
@@ -557,6 +730,7 @@ function onFlip() {
 }
 
 function onAnswer(correct) {
+  recordStudy(1);
   dotHistory.push(correct ? 'c' : 'w');
   if (dotHistory.length > STREAK * 2) dotHistory.shift();
 
@@ -637,6 +811,32 @@ function showStreakModal(isCorrect) {
 function closeModal(btn) {
   btn.closest('.modal-overlay').remove();
   nextCard();
+}
+
+// ===================================================================
+// 発音
+// ===================================================================
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US';
+  utter.rate = 0.82;
+  utter.pitch = 1.8;  // 高いピッチでかわいらしく
+
+  // かわいい声（女性・高め）を優先して選ぶ
+  const voices = window.speechSynthesis.getVoices();
+  const cuteNames = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Victoria', 'Ava', 'Allison', 'Zira'];
+  let pick = null;
+  for (const name of cuteNames) {
+    pick = voices.find(v => v.name.includes(name));
+    if (pick) break;
+  }
+  if (!pick) pick = voices.find(v => v.lang.startsWith('en') && /female/i.test(v.name));
+  if (!pick) pick = voices.find(v => v.lang.startsWith('en'));
+  if (pick) utter.voice = pick;
+
+  window.speechSynthesis.speak(utter);
 }
 
 // ===================================================================
@@ -855,6 +1055,72 @@ function showConfetti(count) {
   }
   document.body.appendChild(wrap);
   setTimeout(() => wrap.remove(), 5000);
+}
+
+// ===================================================================
+// きろく
+// ===================================================================
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function recordStudy(n) {
+  const key = getTodayKey();
+  const rec = JSON.parse(localStorage.getItem('eitanRecords') || '{}');
+  rec[key] = (rec[key] || 0) + n;
+  localStorage.setItem('eitanRecords', JSON.stringify(rec));
+}
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderRecord() {
+  const records   = JSON.parse(localStorage.getItem('eitanRecords') || '{}');
+  const todayKey  = getTodayKey();
+  const year      = calYear;
+  const month     = calMonth;
+  const firstDow  = new Date(year, month, 1).getDay();
+  const lastDay   = new Date(year, month + 1, 0).getDate();
+
+  const monthPrefix = `${year}-${String(month+1).padStart(2,'0')}`;
+  const monthTotal  = Object.entries(records)
+    .filter(([k]) => k.startsWith(monthPrefix))
+    .reduce((s, [, v]) => s + v, 0);
+
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += `<div class="cal-cell empty"></div>`;
+
+  for (let d = 1; d <= lastDay; d++) {
+    const key   = `${monthPrefix}-${String(d).padStart(2,'0')}`;
+    const count = records[key] || 0;
+    const dow   = new Date(year, month, d).getDay();
+    const dowCls   = dow === 0 ? 'sun' : dow === 6 ? 'sat' : '';
+    const todayCls = key === todayKey ? 'today' : '';
+    const lvCls    = count >= 30 ? 'lv4' : count >= 15 ? 'lv3' : count >= 5 ? 'lv2' : count >= 1 ? 'lv1' : '';
+    const badge    = count > 0 ? `<span class="cal-count">${count}</span>` : '';
+    cells += `<div class="cal-cell ${lvCls} ${dowCls} ${todayCls}">
+      <span class="cal-day">${d}</span>${badge}
+    </div>`;
+  }
+
+  app.innerHTML = `
+    <div class="record-screen">
+      <div class="record-month-nav">
+        <button class="btn btn-ghost btn-sm" onclick="calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderRecord()">◀</button>
+        <span class="record-month-label">${year}年${month+1}月</span>
+        <button class="btn btn-ghost btn-sm" onclick="calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderRecord()">▶</button>
+      </div>
+
+      <div class="cal-wrap">
+        <div class="cal-dow"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+        <div class="cal-grid">${cells}</div>
+      </div>
+
+      <div class="record-total">📚 ${year}年${month+1}月の勉強：<b>${monthTotal}</b> 枚</div>
+
+      <button class="btn btn-ghost" onclick="renderStart()">🏠 もどる</button>
+    </div>`;
 }
 
 // ===================================================================
