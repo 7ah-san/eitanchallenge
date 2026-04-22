@@ -372,6 +372,33 @@
       font-weight: bold;
     }
 
+    /* ===== スタート統計 ===== */
+    .start-stats {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+    .stat-chip {
+      background: rgba(255,255,255,0.28);
+      border-radius: 14px;
+      padding: 10px 14px;
+      text-align: center;
+      color: white;
+      flex: 1;
+      max-width: 110px;
+    }
+    .stat-chip-num {
+      font-size: 1.5rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .stat-chip-label {
+      font-size: 0.72rem;
+      margin-top: 3px;
+      opacity: 0.88;
+    }
+
     /* ===== きろく画面 ===== */
     .record-screen {
       width: 100%;
@@ -623,6 +650,9 @@ const BANA_MESSAGES = [
 
 function renderStart() {
   const msg = BANA_MESSAGES[Math.floor(Math.random() * BANA_MESSAGES.length)];
+  const todayCount = getTodayCards();
+  const streak     = getStreak();
+  const total      = getTotalCards();
   app.innerHTML = `
     <div class="start-screen">
       <div class="char-bubble-wrap">
@@ -633,6 +663,21 @@ function renderStart() {
       </div>
       <p class="start-title">バナたろうと一緒に<br>英単語を覚えよう！</p>
       <p class="start-subtitle">英検準1級 フラッシュカード（${BUILTIN_WORDS.length}語）</p>
+
+      <div class="start-stats">
+        <div class="stat-chip">
+          <div class="stat-chip-num">🃏 ${todayCount}</div>
+          <div class="stat-chip-label">今日の枚数</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-num">🔥 ${streak}</div>
+          <div class="stat-chip-label">連続学習日</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-num">📚 ${total}</div>
+          <div class="stat-chip-label">累計枚数</div>
+        </div>
+      </div>
 
       <button class="btn btn-white" onclick="loadBuiltIn()">🍌 準1級でスタート！</button>
       <button class="btn btn-ghost" onclick="calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderRecord()">📅 きろくを見る</button>
@@ -1072,6 +1117,32 @@ function recordStudy(n) {
   localStorage.setItem('eitanRecords', JSON.stringify(rec));
 }
 
+function getStreak() {
+  const rec = JSON.parse(localStorage.getItem('eitanRecords') || '{}');
+  let streak = 0;
+  const d = new Date();
+  while (true) {
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (rec[key] > 0) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function getTotalCards() {
+  const rec = JSON.parse(localStorage.getItem('eitanRecords') || '{}');
+  return Object.values(rec).reduce((s, v) => s + v, 0);
+}
+
+function getTodayCards() {
+  const rec = JSON.parse(localStorage.getItem('eitanRecords') || '{}');
+  return rec[getTodayKey()] || 0;
+}
+
 let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
@@ -1118,6 +1189,16 @@ function renderRecord() {
       </div>
 
       <div class="record-total">📚 ${year}年${month+1}月の勉強：<b>${monthTotal}</b> 枚</div>
+      <div class="start-stats" style="width:100%">
+        <div class="stat-chip" style="max-width:none">
+          <div class="stat-chip-num">🔥 ${getStreak()}</div>
+          <div class="stat-chip-label">連続学習日</div>
+        </div>
+        <div class="stat-chip" style="max-width:none">
+          <div class="stat-chip-num">📚 ${getTotalCards()}</div>
+          <div class="stat-chip-label">累計枚数</div>
+        </div>
+      </div>
 
       <button class="btn btn-ghost" onclick="renderStart()">🏠 もどる</button>
     </div>`;
